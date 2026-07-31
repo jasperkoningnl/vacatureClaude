@@ -467,7 +467,7 @@ async function haalKandidatenViaWpRest(
     const url = `${origin}/wp-json/wp/v2/vacancy?per_page=${perPage}&page=${pagina}&_fields=link,title`;
     let response: Response;
     try {
-      response = await fetchImpl(url, { headers: STANDAARD_HEADERS });
+      response = await fetchMetTimeout(fetchImpl, url);
     } catch {
       return pagina === 1 ? null : alle;
     }
@@ -555,6 +555,41 @@ const STANDAARD_HEADERS = {
   "User-Agent": "Mozilla/5.0 (compatible; vacaturezoeker-persoonlijk/1.0)",
 };
 
+const FETCH_TIMEOUT_MS = 10_000;
+const DETAIL_FETCH_CONCURRENCY = 6;
+
+/** Fetch met een timeout, zodat één trage/hangende request niet de hele run (en het serverless-functietijdbudget) opslokt. */
+function fetchMetTimeout(fetchImpl: typeof fetch, url: string): ReturnType<typeof fetch> {
+  return fetchImpl(url, { headers: STANDAARD_HEADERS, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+}
+
+/**
+ * Voert `taak` uit voor elk item met maximaal `concurrency` requests
+ * tegelijk. De detailpagina's werden voorheen strikt sequentieel opgehaald,
+ * wat bij tientallen vacatures de serverless functietimeout kon
+ * overschrijden (elke fetch wachtte op de vorige). Parallel ophalen met een
+ * beperkt aantal tegelijk is zowel snel als beleefd richting de bronsite.
+ */
+async function voerBeperktParallelUit<T, R>(
+  items: T[],
+  concurrency: number,
+  taak: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const resultaten: R[] = new Array(items.length);
+  let volgendeIndex = 0;
+
+  async function werker(): Promise<void> {
+    for (;;) {
+      const index = volgendeIndex++;
+      if (index >= items.length) return;
+      resultaten[index] = await taak(items[index]);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => werker()));
+  return resultaten;
+}
+
 /**
  * Werken voor Cultuur: WordPress met FacetWP-gefilterde listing (paginering
  * gaat puur via JavaScript/AJAX, niet via volgbare links). Probeert daarom
@@ -601,7 +636,7 @@ export async function haalWerkenVoorCultuurOp(
       if (gezienPaginaUrls.has(huidigeUrl)) break;
       gezienPaginaUrls.add(huidigeUrl);
 
-      const response = await fetchImpl(huidigeUrl, { headers: STANDAARD_HEADERS });
+      const response = await fetchMetTimeout(fetchImpl, huidigeUrl);
       laatsteStatus = response.status;
       if (!response.ok) {
         if (paginaTeller === 0) {
@@ -640,20 +675,26 @@ export async function haalWerkenVoorCultuurOp(
     };
   }
 
+  const detailCap = Math.min(maxDetailFetches, alleKandidaten.length);
+  const detailHtmls = await voerBeperktParallelUit(
+    alleKandidaten.slice(0, detailCap),
+    DETAIL_FETCH_CONCURRENCY,
+    async (kandidaat): Promise<string | null> => {
+      try {
+        const detailResponse = await fetchMetTimeout(fetchImpl, kandidaat.href);
+        if (detailResponse.ok) return await detailResponse.text();
+      } catch {
+        // best-effort: detailpagina is optioneel, kernvelden komen uit het overzicht
+      }
+      return null;
+    },
+  );
+
   const items: RuweVacature[] = [];
 
   for (let i = 0; i < alleKandidaten.length; i++) {
     const kandidaat = alleKandidaten[i];
-
-    let detailHtml: string | null = null;
-    if (i < maxDetailFetches) {
-      try {
-        const detailResponse = await fetchImpl(kandidaat.href, { headers: STANDAARD_HEADERS });
-        if (detailResponse.ok) detailHtml = await detailResponse.text();
-      } catch {
-        detailHtml = null;
-      }
-    }
+    const detailHtml = i < detailCap ? detailHtmls[i] : null;
 
     const jobPostingLd = detailHtml ? vindJobPostingLd(detailHtml) : null;
     const detailTekst = detailHtml ? htmlNaarTekst(detailHtml) : null;
