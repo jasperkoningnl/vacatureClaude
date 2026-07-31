@@ -89,9 +89,10 @@ export async function ingestBron(bronNaam: string): Promise<IngestResultaat> {
     resultaat = await adapter(bronRij.config);
   } catch (error) {
     const fout = error instanceof Error ? error.message : "Onbekende fout bij ophalen.";
+    console.error(`[ingest] ${bronNaam}: opgehaald mislukt (0 gevonden) - ${fout}`);
     await db
       .update(bronnen)
-      .set({ laatstGedraaid: new Date(), laatsteFout: fout })
+      .set({ laatstGedraaid: new Date(), laatsteFout: fout, laatsteAantalGevonden: 0 })
       .where(eq(bronnen.naam, bronNaam));
     return { bron: bronNaam, gevonden: 0, nieuw: 0, duplicaten: 0, waarschuwing: null, fout };
   }
@@ -127,9 +128,18 @@ export async function ingestBron(bronNaam: string): Promise<IngestResultaat> {
     nieuw++;
   }
 
+  console.log(
+    `[ingest] ${bronNaam}: ${resultaat.items.length} gevonden, ${nieuw} nieuw, ${duplicaten} duplicaten` +
+      (resultaat.waarschuwing ? ` - waarschuwing: ${resultaat.waarschuwing}` : ""),
+  );
+
   await db
     .update(bronnen)
-    .set({ laatstGedraaid: new Date(), laatsteFout: resultaat.waarschuwing })
+    .set({
+      laatstGedraaid: new Date(),
+      laatsteFout: resultaat.waarschuwing,
+      laatsteAantalGevonden: resultaat.items.length,
+    })
     .where(eq(bronnen.naam, bronNaam));
 
   return {

@@ -9,6 +9,7 @@ interface BronStatus {
   type: string;
   laatstGedraaid: Date | null;
   laatsteFout: string | null;
+  laatsteAantalGevonden: number | null;
 }
 
 interface VacatureRij {
@@ -49,6 +50,7 @@ async function laadDbState(): Promise<{ data: DbState | null; fout: string | nul
         type: bronnen.type,
         laatstGedraaid: bronnen.laatstGedraaid,
         laatsteFout: bronnen.laatsteFout,
+        laatsteAantalGevonden: bronnen.laatsteAantalGevonden,
       })
       .from(bronnen)
       .orderBy(bronnen.naam);
@@ -128,6 +130,7 @@ export default async function TestResultsPage() {
                   <th style={thTd}>Naam</th>
                   <th style={thTd}>Type</th>
                   <th style={thTd}>Laatst gedraaid</th>
+                  <th style={thTd}>Laatste aantal gevonden</th>
                   <th style={thTd}>Laatste fout/waarschuwing</th>
                 </tr>
               </thead>
@@ -139,12 +142,13 @@ export default async function TestResultsPage() {
                     <td style={thTd}>
                       {bron.laatstGedraaid ? new Date(bron.laatstGedraaid).toLocaleString("nl-NL") : "-"}
                     </td>
+                    <td style={thTd}>{bron.laatsteAantalGevonden ?? "-"}</td>
                     <td style={thTd}>{bron.laatsteFout ?? "-"}</td>
                   </tr>
                 ))}
                 {data.bronnenStatus.length === 0 && (
                   <tr>
-                    <td style={thTd} colSpan={4}>
+                    <td style={thTd} colSpan={5}>
                       Nog geen bronnen geseed. Klik hierboven op &quot;Bronnen seeden&quot;.
                     </td>
                   </tr>

@@ -20,6 +20,7 @@ export const bronnen = pgTable("bronnen", {
   config: jsonb("config").$type<Record<string, unknown>>().notNull().default({}),
   laatstGedraaid: timestamp("laatst_gedraaid", { withTimezone: true }),
   laatsteFout: text("laatste_fout"),
+  laatsteAantalGevonden: integer("laatste_aantal_gevonden"),
 });
 
 // Werkgevers die met de generieke werkgever-extractor gevolgd worden (Fase 2/3).

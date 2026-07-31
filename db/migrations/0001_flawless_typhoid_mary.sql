@@ -1,0 +1,1 @@
+ALTER TABLE "bronnen" ADD COLUMN "laatste_aantal_gevonden" integer;

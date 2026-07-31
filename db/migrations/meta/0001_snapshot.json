@@ -1,0 +1,589 @@
+{
+  "id": "1cc7e2db-b400-4976-b26b-1ec04503aae1",
+  "prevId": "de7ed207-7f5d-4a41-9840-e0436655ba38",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.bronnen": {
+      "name": "bronnen",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "naam": {
+          "name": "naam",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "config": {
+          "name": "config",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "laatst_gedraaid": {
+          "name": "laatst_gedraaid",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "laatste_fout": {
+          "name": "laatste_fout",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "laatste_aantal_gevonden": {
+          "name": "laatste_aantal_gevonden",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "bronnen_naam_unique": {
+          "name": "bronnen_naam_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "naam"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cao_schalen": {
+      "name": "cao_schalen",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cao_naam": {
+          "name": "cao_naam",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "schaal": {
+          "name": "schaal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "jaar": {
+          "name": "jaar",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bedrag_min": {
+          "name": "bedrag_min",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bedrag_max": {
+          "name": "bedrag_max",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "uren_basis": {
+          "name": "uren_basis",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bron_url": {
+          "name": "bron_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "cao_schalen_naam_schaal_jaar_idx": {
+          "name": "cao_schalen_naam_schaal_jaar_idx",
+          "columns": [
+            {
+              "expression": "cao_naam",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "schaal",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "jaar",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.cao_secundair": {
+      "name": "cao_secundair",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cao_naam": {
+          "name": "cao_naam",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "jaar": {
+          "name": "jaar",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "vakantietoeslag_pct": {
+          "name": "vakantietoeslag_pct",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "eindejaarsuitkering_pct": {
+          "name": "eindejaarsuitkering_pct",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "eju_over_incl_vakantiegeld": {
+          "name": "eju_over_incl_vakantiegeld",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "ikb_pct": {
+          "name": "ikb_pct",
+          "type": "numeric(5, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "bron_url": {
+          "name": "bron_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "cao_secundair_naam_jaar_idx": {
+          "name": "cao_secundair_naam_jaar_idx",
+          "columns": [
+            {
+              "expression": "cao_naam",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "jaar",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.vacatures": {
+      "name": "vacatures",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "bron": {
+          "name": "bron",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "bron_id": {
+          "name": "bron_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "url_genormaliseerd": {
+          "name": "url_genormaliseerd",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "titel": {
+          "name": "titel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "werkgever": {
+          "name": "werkgever",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "standplaats": {
+          "name": "standplaats",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "plaats_genormaliseerd": {
+          "name": "plaats_genormaliseerd",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uren_min": {
+          "name": "uren_min",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uren_max": {
+          "name": "uren_max",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "dienstverband": {
+          "name": "dienstverband",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "publicatiedatum": {
+          "name": "publicatiedatum",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "sluitingsdatum": {
+          "name": "sluitingsdatum",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ruwe_tekst": {
+          "name": "ruwe_tekst",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "verrijkte_tekst": {
+          "name": "verrijkte_tekst",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "werkgever_url": {
+          "name": "werkgever_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaris_ruw_min": {
+          "name": "salaris_ruw_min",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaris_ruw_max": {
+          "name": "salaris_ruw_max",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaris_ruw_periode": {
+          "name": "salaris_ruw_periode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaris_ruw_uren": {
+          "name": "salaris_ruw_uren",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "maandsalaris_32u_min": {
+          "name": "maandsalaris_32u_min",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "maandsalaris_32u_max": {
+          "name": "maandsalaris_32u_max",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jaarsalaris_allin_32u": {
+          "name": "jaarsalaris_allin_32u",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaris_bron": {
+          "name": "salaris_bron",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salaris_aanname": {
+          "name": "salaris_aanname",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "cao_naam": {
+          "name": "cao_naam",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cao_schaal": {
+          "name": "cao_schaal",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "reistijd_minuten": {
+          "name": "reistijd_minuten",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'nieuw'"
+        },
+        "afwijs_reden": {
+          "name": "afwijs_reden",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_score": {
+          "name": "ai_score",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "ai_motivatie": {
+          "name": "ai_motivatie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mijn_oordeel": {
+          "name": "mijn_oordeel",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "mijn_notitie": {
+          "name": "mijn_notitie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aangemaakt_op": {
+          "name": "aangemaakt_op",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "vacatures_url_genormaliseerd_idx": {
+          "name": "vacatures_url_genormaliseerd_idx",
+          "columns": [
+            {
+              "expression": "url_genormaliseerd",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "vacatures_bron_bron_id_idx": {
+          "name": "vacatures_bron_bron_id_idx",
+          "columns": [
+            {
+              "expression": "bron",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "bron_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"vacatures\".\"bron_id\" is not null",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.werkgevers": {
+      "name": "werkgevers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "naam": {
+          "name": "naam",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "plaats": {
+          "name": "plaats",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "vacaturepagina_url": {
+          "name": "vacaturepagina_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "laatste_hash": {
+          "name": "laatste_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'actief'"
+        },
+        "notitie": {
+          "name": "notitie",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aangemaakt_op": {
+          "name": "aangemaakt_op",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
