@@ -1,0 +1,22 @@
+name: Ingest vacatures
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Elke 6 uur. Pas aan naar wens (bv. "0 * * * *" voor elk uur).
+    - cron: "0 */6 * * *"
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run ingest
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
