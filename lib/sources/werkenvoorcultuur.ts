@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
+import { voerBeperktParallelUit } from "../concurrency";
 import { htmlNaarTekst } from "../html-tekst";
 import { OphaalResultaat, RuweVacature } from "./types";
 
@@ -561,33 +562,6 @@ const DETAIL_FETCH_CONCURRENCY = 6;
 /** Fetch met een timeout, zodat één trage/hangende request niet de hele run (en het serverless-functietijdbudget) opslokt. */
 function fetchMetTimeout(fetchImpl: typeof fetch, url: string): ReturnType<typeof fetch> {
   return fetchImpl(url, { headers: STANDAARD_HEADERS, signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
-}
-
-/**
- * Voert `taak` uit voor elk item met maximaal `concurrency` requests
- * tegelijk. De detailpagina's werden voorheen strikt sequentieel opgehaald,
- * wat bij tientallen vacatures de serverless functietimeout kon
- * overschrijden (elke fetch wachtte op de vorige). Parallel ophalen met een
- * beperkt aantal tegelijk is zowel snel als beleefd richting de bronsite.
- */
-async function voerBeperktParallelUit<T, R>(
-  items: T[],
-  concurrency: number,
-  taak: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const resultaten: R[] = new Array(items.length);
-  let volgendeIndex = 0;
-
-  async function werker(): Promise<void> {
-    for (;;) {
-      const index = volgendeIndex++;
-      if (index >= items.length) return;
-      resultaten[index] = await taak(items[index]);
-    }
-  }
-
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => werker()));
-  return resultaten;
 }
 
 /**

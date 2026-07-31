@@ -1,6 +1,7 @@
 import { and, eq, or, sql } from "drizzle-orm";
 import { db } from "@/db/client";
 import { bronnen, vacatures } from "@/db/schema";
+import { voerBeperktParallelUit } from "@/lib/concurrency";
 import { normaliseerTekst, normalizeerUrl } from "@/lib/normalize";
 import { haalOneWorldOp } from "@/lib/sources/oneworld";
 import { haalVillamediaOp } from "@/lib/sources/villamedia";
@@ -100,9 +101,16 @@ export async function ingestBron(bronNaam: string): Promise<IngestResultaat> {
   let nieuw = 0;
   let duplicaten = 0;
 
-  for (const item of resultaat.items) {
+  // Dedup-checks zijn onafhankelijke leesqueries: parallel uitvoeren voorkomt
+  // dat tientallen sequentiele databaseroundtrips (per bron, per item) het
+  // tijdsbudget van de serverless ingest-functie opeten.
+  const dedupChecks = await voerBeperktParallelUit(resultaat.items, 8, async (item) => {
     const urlGenormaliseerd = normalizeerUrl(item.url);
     const isDuplicaat = await bestaatAl(item, urlGenormaliseerd);
+    return { item, urlGenormaliseerd, isDuplicaat };
+  });
+
+  for (const { item, urlGenormaliseerd, isDuplicaat } of dedupChecks) {
     if (isDuplicaat) {
       duplicaten++;
       continue;
