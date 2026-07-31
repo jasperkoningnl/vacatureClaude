@@ -12,6 +12,7 @@ const ACTIES = [
   { label: "1. Migreren (schema aanmaken)", path: "/api/admin/migrate" },
   { label: "2. Bronnen seeden", path: "/api/admin/seed-bronnen" },
   { label: "3. Ingest draaien", path: "/api/ingest" },
+  { label: "4. Debug: werkenvoorcultuur-structuur", path: "/api/admin/debug-werkenvoorcultuur" },
 ] as const;
 
 export default function AdminActies() {
